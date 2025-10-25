@@ -40,7 +40,7 @@ Where
 I decided to use a temperature schedule as a function of current iteration
 
 $$
-T_k = 0.1 \cdot \frac{\textrm{MAX\_ITER - CUR\_ITER}}{MAX\_ITER}
+T_k = 0.1 \cdot \frac{\text{MAX ITER} - \text{CUR ITER}}{\text{MAX ITER}}
 $$
 
 To encourage initial exploration
