@@ -173,6 +173,17 @@ For each problem, the system compares:
 
 Values can be positive (standard TSP distances) or negative (special problem variants).
 
+### Parameters checking
+After I found the best parameter configuration for each problem, I ran `n_runs=10` simulations for each model using the best parameters to ensure the performance, evaluating mean, variance and percentile
+- **In 13/21 problems (62%)** the solution initially found is better or comparable to the next 10 runs confirming that parameters are good
+- **In 8/21 problems (38%)** new runs perform even better
+    - Parameters are stable and generate good solutions
+    - Solutions can be improved by running more iterations, as I expected
+    - Varianza is well handled
+
+There are few extreme percentiles (high and low), meaning the parameters are consistent and representatives, not fortunate outliers
+
+
 ## Conclusions
 
 ### Performance comparison

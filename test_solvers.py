@@ -2,7 +2,7 @@ from solution import Solution
 import numpy as np
 from hc_solver import TSPHCSolver
 from es_solver import TSPESSolver
-
+from scipy import stats
 
 def rle_encode(arr):
     """
@@ -49,8 +49,8 @@ class SolutionResults:
         self.best_sequence = best_sequence
         self.params = params
 
-def _ec_task(current_problem, mutation, population, offspring, use_greedy):
-    np.random.seed(42)
+def _ec_task(current_problem, mutation, population, offspring, use_greedy, seed=42):
+    np.random.seed(seed)
     ec_solver = TSPESSolver(current_problem, 
                             population_size=population, offspring_size=offspring, 
                             mutation_rate=mutation, greedy_initial_solutions=use_greedy)
@@ -70,8 +70,8 @@ def _ec_task(current_problem, mutation, population, offspring, use_greedy):
         }
     )
 
-def _hc_task(current_problem):
-    np.random.seed(42)
+def _hc_task(current_problem, seed=42):
+    np.random.seed(seed)
     hc_solver = TSPHCSolver(current_problem)
     hc_best_sol, hc_best_history, hc_history = hc_solver.hc_solve(max_iter=10000)
 
@@ -173,3 +173,76 @@ def get_results(folder: str, problem_name: str) -> dict:
         'hc_results': hc_results,
         'es_results': es_results
     }
+
+
+def check_solutions(folder: str):
+    """
+    Check mean, variance and kolmogorov-smirnov between multiple runs of best algorithms
+    """
+    full_results = {}
+    for filename in os.listdir(folder):
+        if not filename.endswith('.npy') or not filename.startswith('problem_'):
+            continue
+        problem_name = filename[:-4]  # Remove .npy extension
+
+        result_stats = check_solution(folder, problem_name)
+        full_results[problem_name] = result_stats
+    return full_results
+
+def save_check_results(results: dict):
+    with open(('summary.csv'), 'w') as f:
+        f.write("problem,mean_fitness,var_fitness,stored_best,percentile\n")
+        for problem_name, stats in results.items():
+            f.write(f"{problem_name},{stats['mean_fitness']},{stats['var_fitness']},"
+                    f"{stats['stored_best']},{stats['percentile']}\n")
+
+
+
+def check_solution(folder: str, problem_name: str, num_runs: int =10) -> dict:
+    """
+    Check mean, variance and percentile between multiple runs of best algorithms
+    """
+
+    filename = os.path.join(folder, f"{problem_name}.npy")
+    problem = np.load(filename)
+
+
+    results = get_results(os.path.dirname(filename), os.path.basename(filename)[:-4])
+
+    # Get parameters for best ES solution
+    best_es_result = min(results['es_results'], key=lambda res: res.best_fitness)
+
+    # Run 10 times es_solver with best parameters and calculate statistics
+    es_fitnesses = []
+
+    for _ in range(num_runs):
+        es_result = _ec_task(
+            problem,
+            mutation=best_es_result.params['mutation'],
+            population=best_es_result.params['population'],
+            offspring=best_es_result.params['offspring'],
+            use_greedy=best_es_result.params['greedy_initial'],
+            seed=np.random.randint(0, 10000)
+        )
+        es_fitnesses.append(es_result.best_fitness)
+
+    mean_fitness = np.mean(es_fitnesses)
+    var_fitness = np.var(es_fitnesses)
+
+    stored_best = best_es_result.best_fitness
+
+    percentile = stats.percentileofscore(es_fitnesses, stored_best)
+
+    return {
+        'problem': filename[:-4],
+        'mean_fitness': mean_fitness,
+        'var_fitness': var_fitness,
+        'stored_best': stored_best,
+        'percentile': percentile,
+        'es_fitnesses': es_fitnesses
+    }
+
+        
+        
+
+        
