@@ -264,7 +264,7 @@ This suggests that greedy solutions are exceptionally strong starting points, an
 
 ### Best solutions
 
-By running multiple instances of the same problems I found better results than those reported in `tsp_best_solutions.csv`
+By running multiple instances of the same problems I found better results than those reported in `tsp_best_solutions.csv` as I explained before, so keep the table reported as the ground truth for the best fitnesses for each problem.
 
 ### Computational trade-offs
 
