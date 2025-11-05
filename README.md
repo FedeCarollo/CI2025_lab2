@@ -93,6 +93,8 @@ The adopted strategy is a ($\lambda+\mu$), where $\lambda$ represents the offspr
 
 At each generation, $\lambda$ individuals are generated from the current population, and then the best $\mu$ individuals are selected from the previous population and the new offspring.
 
+I also tried a ($\lambda, \mu$) apporach but it consistently peformed worse in all instances so I decided to discard it.
+
 ### Initialization parameters
 
 The main configurable parameters are:
@@ -111,12 +113,12 @@ For each required parent pair, $\tau$ individuals are randomly selected from the
 
 I implemented two versions of the selection function:
 
-- A "pythonic" version (`_selection`) using loops and lists
+- A "pythonic" version (`_selection`) using loops and lists (not used, I kept it because it is easie to understand)
 - A NumPy-optimized version (`_selection_better`) leveraging vectorized operations for better performance, especially with large populations
 
 ### Crossover
 
-Crossover selects two random cut points in the parent sequences. The segment between these points is copied from the first parent, and the remaining cities are filled from the order of the second parent, maintaining feasibility.
+Crossover selects two random cut points in the parent sequences. The segment between these points is copied from the first parent, and the remaining nodes are filled from the order of the second parent, maintaining feasibility.
 
 ### Mutation
 
@@ -145,7 +147,7 @@ For each problem file in `test_problems/`:
 1. **Hill Climber Test** (`_hc_task`): Runs a single HC solver with fixed parameters (10,000 iterations, greedy initialization, simulated annealing)
 2. **ES Tests** (`_ec_task`): Runs multiple ES configurations in **parallel** using `joblib.Parallel` with all available CPU cores
 
-Parallelization is not the scope of this course so just believe it speeds up computations if you don't understand.
+Parallelization is not the scope of this course so just believe it speeds up computations if you don't understand the code.
 
 ### Parameter combinations
 
@@ -174,15 +176,15 @@ Each result is a `SolutionResults` object class containing:
 
 The notebook generates 3-panel comparison plots for each problem using `get_results()`:
 
-1. **Left panel - Hill Climber**: Current solution vs best solution over iterations
-2. **Middle panel - ES (greedy init)**: Overlayed results for all greedy-initialized ES configurations
+1. **Upper panel - Hill Climber**: Current solution vs best solution over iterations
+2. **Left panel - ES (greedy init)**: Overlayed results for all greedy-initialized ES configurations
 3. **Right panel - ES (random init)**: Overlayed results for all random-initialized ES configurations
 
 Each overlay shows the configuration parameters (mutation rate, population size, offspring size) to identify which parameter combinations perform best.
 
 ### Final results CSV
 
-The file `tsp_best_solutions.csv` contains the best solutions found across all solvers and parameter combinations for each problem:
+The file `tsp_best_solutions.csv` contains the best solutions found across all solvers and parameter combinations for each problem (using `seed=42` as explained):
 
 ```
 problem_name,best_fitness,best_sequence
@@ -211,11 +213,10 @@ After I found the best parameter configuration for each problem, I ran `n_runs=1
 
 There are few extreme percentiles (high and low), meaning the parameters are consistent and representatives, not fortunate outliers.
 
-I also included the new best_solutions found and associated fitness.
+I also included the new best_solutions found and associated fitness, together with the fitnesses of each run.
 
 The best fitnesses are reported here in tabular form for simplicity
 
-**Note**: please note that overall best only includes the tests ran on the 10 instances of each problem, not accounting the original best found in the previous point, I forgot to add it, so if you compare the table and the file please pick the best among `stored_best` and `overall_best` (I thought it unnnecessary to run the simulation again just to add that detail)
 
 | Problem | Best Fitness       |
 | ------- | ------------------ |
@@ -239,6 +240,9 @@ The best fitnesses are reported here in tabular form for simplicity
 | r2_200  | -9595.193023920743 |
 | r2_500  | -2274.489282358286 |
 | r2_1000 | -49362.42122643598 |
+
+**Note**: please note that overall best only includes the tests ran on the 10 instances of each problem, not accounting the original best found in the previous point, I forgot to add it, so if you compare the table and the file please pick the best among `stored_best` and `overall_best` (I thought it unnecessary to run the simulation again just to add that detail).
+
 
 You can find the summary results in [tsp_best_tuned.json](tsp_best_tuned.json)
 
