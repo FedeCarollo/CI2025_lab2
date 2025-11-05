@@ -217,7 +217,6 @@ I also included the new best_solutions found and associated fitness, together wi
 
 The best fitnesses are reported here in tabular form for simplicity
 
-
 | Problem | Best Fitness       |
 | ------- | ------------------ |
 | g_10    | 1497.6636482252907 |
@@ -236,13 +235,13 @@ The best fitnesses are reported here in tabular form for simplicity
 | r1_1000 | 2772.0944330327957 |
 | r2_10   | -411.7017155524985 |
 | r2_20   | -844.2659774812848 |
+| r2_50   | -2274.489282358286 |
 | r2_100  | -4712.857397154966 |
 | r2_200  | -9595.193023920743 |
-| r2_500  | -2274.489282358286 |
+| r2_500  | -24518.59064685426 |
 | r2_1000 | -49362.42122643598 |
 
 **Note**: please note that overall best only includes the tests ran on the 10 instances of each problem, not accounting the original best found in the previous point, I forgot to add it, so if you compare the table and the file please pick the best among `stored_best` and `overall_best` (I thought it unnecessary to run the simulation again just to add that detail).
-
 
 You can find the summary results in [tsp_best_tuned.json](tsp_best_tuned.json)
 
