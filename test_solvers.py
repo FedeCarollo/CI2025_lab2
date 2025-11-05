@@ -3,6 +3,9 @@ import numpy as np
 from hc_solver import TSPHCSolver
 from es_solver import TSPESSolver
 from scipy import stats
+import json
+import os
+from joblib import Parallel, delayed
 
 def rle_encode(arr):
     """
@@ -118,10 +121,6 @@ def default_combinations() -> list[tuple[float, int, int, bool]]:
         for greedy in greedy_options
     ]
 
-import os
-from joblib import Parallel, delayed
-
-
 def execute_test_problems (
     folder: str,
     es_param_combinations: list[tuple[float, int, int, bool]]):
@@ -175,44 +174,43 @@ def get_results(folder: str, problem_name: str) -> dict:
     }
 
 
-def check_solutions(folder: str):
+def check_solutions(folder: str, num_runs: int = 10):
     """
-    Check mean, variance and kolmogorov-smirnov between multiple runs of best algorithms
+    Parallelizzata: Check mean, variance, overall best e percentile
+    tra multiple runs di best algorithms
     """
-    full_results = {}
+    problem_names = []
     for filename in os.listdir(folder):
         if not filename.endswith('.npy') or not filename.startswith('problem_'):
             continue
-        problem_name = filename[:-4]  # Remove .npy extension
+        problem_names.append(filename[:-4])  # Remove .npy extension
 
-        result_stats = check_solution(folder, problem_name)
-        full_results[problem_name] = result_stats
+    # Parallelizza il calcolo
+    full_results = {}
+    results_list = Parallel(n_jobs=-1)(
+        delayed(_check_solution_task)(folder, problem_name, num_runs)
+        for problem_name in problem_names
+    )
+
+    for result in results_list:
+        full_results[result['problem']] = result
+
     return full_results
 
-def save_check_results(results: dict):
-    with open(('summary.csv'), 'w') as f:
-        f.write("problem,mean_fitness,var_fitness,stored_best,percentile\n")
-        for problem_name, stats in results.items():
-            f.write(f"{problem_name},{stats['mean_fitness']},{stats['var_fitness']},"
-                    f"{stats['stored_best']},{stats['percentile']}\n")
 
-
-
-def check_solution(folder: str, problem_name: str, num_runs: int =10) -> dict:
+def _check_solution_task(folder: str, problem_name: str, num_runs: int = 10):
     """
-    Check mean, variance and percentile between multiple runs of best algorithms
+    Task per parallelizzazione: calcola statistiche per un singolo problema
     """
-
     filename = os.path.join(folder, f"{problem_name}.npy")
     problem = np.load(filename)
-
 
     results = get_results(os.path.dirname(filename), os.path.basename(filename)[:-4])
 
     # Get parameters for best ES solution
     best_es_result = min(results['es_results'], key=lambda res: res.best_fitness)
 
-    # Run 10 times es_solver with best parameters and calculate statistics
+    # Run num_runs times with best parameters
     es_fitnesses = []
 
     for _ in range(num_runs):
@@ -228,21 +226,26 @@ def check_solution(folder: str, problem_name: str, num_runs: int =10) -> dict:
 
     mean_fitness = np.mean(es_fitnesses)
     var_fitness = np.var(es_fitnesses)
-
     stored_best = best_es_result.best_fitness
-
+    overall_best = min(es_fitnesses)
     percentile = stats.percentileofscore(es_fitnesses, stored_best)
 
     return {
-        'problem': filename[:-4],
-        'mean_fitness': mean_fitness,
-        'var_fitness': var_fitness,
-        'stored_best': stored_best,
-        'percentile': percentile,
-        'es_fitnesses': es_fitnesses
+        'problem': problem_name,
+        'mean_fitness': float(mean_fitness),
+        'var_fitness': float(var_fitness),
+        'stored_best': float(stored_best),
+        'overall_best': float(overall_best),
+        'percentile': float(percentile),
+        'best_sequence': best_es_result.best_sequence,
+        'es_fitnesses': [float(f) for f in es_fitnesses]
     }
 
-        
-        
 
-        
+def save_check_results(results: dict, filename: str = 'tsp_best_tuned.json'):
+    """
+    Salva i risultati in JSON con best sequence, overall best e stored best
+    """
+    with open(filename, 'w') as f:
+        json.dump(results, f, indent=2)
+
