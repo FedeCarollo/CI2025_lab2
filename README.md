@@ -89,11 +89,11 @@ You can find the hill climber solution in [hc_solver.py](hc_solver.py)
 
 After implementing the hill climber, I proceeded to implement an Evolutionary Strategy (ES) approach to solve the TSP problem.
 
-The adopted strategy is a ($\lambda+\mu$), where $\lambda$ represents the offspring size (offspring_size) and $\mu$ the population size (population_size).
+The adopted strategy is a ($\mu+\lambda$), where $\lambda$ represents the offspring size (offspring_size) and $\mu$ the population size (population_size).
 
 At each generation, $\lambda$ individuals are generated from the current population, and then the best $\mu$ individuals are selected from the previous population and the new offspring.
 
-I also tried a ($\lambda, \mu$) apporach but it consistently peformed worse in all instances so I decided to discard it.
+I also tried a ($\mu, \lambda$) apporach but it consistently peformed worse in all instances so I decided to discard it.
 
 ### Initialization parameters
 
@@ -184,7 +184,7 @@ Each overlay shows the configuration parameters (mutation rate, population size,
 
 ### Final results CSV
 
-The file `tsp_best_solutions.csv` contains the best solutions found across all solvers and parameter combinations for each problem (using `seed=42` as explained):
+The file `tsp_best_solutions.csv` contains the best solutions found across all solvers and parameter combinations for each problem (using `seed=42` for reproducibility):
 
 ```
 problem_name,best_fitness,best_sequence
